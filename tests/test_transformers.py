@@ -80,3 +80,30 @@ def test_enrich_inventory_dataframe_adds_derived_columns() -> None:
     assert intermediate["lineage_run_id"].iloc[0] == "run-123"
     assert stats["intermediate_rows"] == 2
     assert stats["metrics_rows"] == 1
+
+
+def test_enrich_inventory_dataframe_empty_keeps_schema_and_lineage() -> None:
+    empty = pd.DataFrame(
+        columns=[
+            "order_id",
+            "timestamp",
+            "customer_id",
+            "product_category",
+            "price",
+            "quantity",
+            "store_location",
+        ]
+    )
+
+    intermediate, metrics, stats = enrich_inventory_dataframe(empty, run_id="run-empty")
+
+    assert intermediate.empty
+    assert metrics.empty
+    assert "days_of_coverage" in intermediate.columns
+    assert "safety_margin" in intermediate.columns
+    assert "needs_replenishment" in intermediate.columns
+    assert "lineage_run_id" in intermediate.columns
+    assert "lineage_transformed_at" in intermediate.columns
+    assert "lineage_transformation_version" in intermediate.columns
+    assert stats["lineage_run_id"] == "run-empty"
+    assert "lineage_transformed_at" in stats

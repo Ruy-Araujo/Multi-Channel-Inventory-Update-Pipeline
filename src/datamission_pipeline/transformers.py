@@ -48,8 +48,35 @@ def enrich_inventory_dataframe(
     The function builds an aggregated demand table and joins it back to row-level data
     to compute derived columns such as days_of_coverage and safety_margin.
     """
+    transformed_at = datetime.now(timezone.utc).isoformat()
+
     if normalized_dataframe.empty:
         empty_intermediate = normalized_dataframe.copy()
+        derived_columns = [
+            "order_date",
+            "orders_count",
+            "total_units",
+            "avg_daily_demand",
+            "avg_price",
+            "inventory_on_hand",
+            "days_of_coverage",
+            "safety_margin",
+            "needs_replenishment",
+            "lineage_run_id",
+            "lineage_transformed_at",
+            "lineage_transformation_version",
+        ]
+        for column in derived_columns:
+            if column not in empty_intermediate.columns:
+                empty_intermediate[column] = pd.Series(dtype="object")
+
+        # Keep lineage fields in the intermediate schema even when there are no rows.
+        empty_intermediate = empty_intermediate.assign(
+            lineage_run_id=run_id,
+            lineage_transformed_at=transformed_at,
+            lineage_transformation_version="v1",
+        )
+
         empty_metrics = pd.DataFrame(
             columns=[
                 "product_category",
@@ -65,6 +92,8 @@ def enrich_inventory_dataframe(
             "intermediate_rows": 0,
             "metrics_rows": 0,
             "lead_time_days": lead_time_days,
+            "lineage_run_id": run_id,
+            "lineage_transformed_at": transformed_at,
         }
 
     enriched = normalized_dataframe.copy()
@@ -107,7 +136,6 @@ def enrich_inventory_dataframe(
     enriched["safety_margin"] = enriched["inventory_on_hand"] - (enriched["avg_daily_demand"] * lead_time_days)
     enriched["needs_replenishment"] = enriched["days_of_coverage"] < float(lead_time_days)
 
-    transformed_at = datetime.now(timezone.utc).isoformat()
     enriched["lineage_run_id"] = run_id
     enriched["lineage_transformed_at"] = transformed_at
     enriched["lineage_transformation_version"] = "v1"
@@ -128,5 +156,7 @@ def enrich_inventory_dataframe(
         "intermediate_rows": int(len(enriched)),
         "metrics_rows": int(len(metrics)),
         "lead_time_days": lead_time_days,
+        "lineage_run_id": run_id,
+        "lineage_transformed_at": transformed_at,
     }
     return enriched, metrics, stats
