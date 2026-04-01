@@ -2,9 +2,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+import logging
 import time
 
 import requests
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -52,6 +56,19 @@ class DatasetApiClient:
 
                 elapsed_ms = int(response.elapsed.total_seconds() * 1000)
                 content_type = response.headers.get("Content-Type", "application/octet-stream")
+                payload_size = len(response.content)
+
+                logger.info(
+                    "API response received",
+                    extra={
+                        "project_id": project_id,
+                        "format": data_format,
+                        "status_code": response.status_code,
+                        "content_type": content_type,
+                        "elapsed_ms": elapsed_ms,
+                        "payload_size": payload_size,
+                    },
+                )
 
                 return DatasetResponse(
                     payload=response.content,

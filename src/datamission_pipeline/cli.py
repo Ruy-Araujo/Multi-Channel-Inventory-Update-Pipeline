@@ -2,10 +2,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import sys
 
 from datamission_pipeline.config import load_settings
 from datamission_pipeline.pipeline import DatasetPipeline
+
+
+def configure_logging() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s - %(message)s")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -26,6 +31,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+    configure_logging()
     parser = build_parser()
     args = parser.parse_args()
 
