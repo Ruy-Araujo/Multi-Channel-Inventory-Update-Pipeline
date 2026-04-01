@@ -12,7 +12,7 @@ DEFAULT_FORMAT = os.getenv("DATAMISSION_DEFAULT_FORMAT", "parquet")
 
 with DAG(
     dag_id="datamission_dataset_pipeline",
-    start_date=datetime(2026, 1, 1),
+    start_date=datetime(2024, 1, 1),
     schedule="0 2 * * *",
     catchup=False,
     default_args={

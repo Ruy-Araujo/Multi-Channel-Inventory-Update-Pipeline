@@ -69,7 +69,17 @@ class DatasetPipeline:
             )
 
             if not validation_report.is_valid:
-                raise ValueError("Payload integrity validation failed")
+                failed_checks_summary = self._summarize_failed_checks(validation_report)
+                logger.error(
+                    "Payload integrity validation failed",
+                    extra={
+                        "run_id": run_id,
+                        "project_id": project_id,
+                        "format": data_format,
+                        "failed_checks": failed_checks_summary,
+                    },
+                )
+                raise ValueError(f"Payload integrity validation failed: {failed_checks_summary}")
 
             raw_file_path = self._save_raw_payload(response.payload, project_id, data_format)
             metadata.raw_file_path = str(raw_file_path)
@@ -244,3 +254,14 @@ class DatasetPipeline:
                     "details": alert.details,
                 },
             )
+
+    def _summarize_failed_checks(self, validation_report: ValidationReport) -> str:
+        failed_parts: list[str] = []
+        for check in validation_report.checks:
+            if check.passed:
+                continue
+            failed_parts.append(f"{check.name}({check.details})")
+
+        if not failed_parts:
+            return "unknown_validation_failure"
+        return "; ".join(failed_parts)
