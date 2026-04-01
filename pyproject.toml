@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "datamission-pipeline"
+version = "0.1.0"
+description = "DataMission dataset integration pipeline with validation and normalization"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "pandas>=2.2.0",
+  "pyarrow>=16.0.0",
+  "pydantic>=2.7.0",
+  "python-dotenv>=1.0.1",
+  "requests>=2.32.0"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2.0",
+]
+airflow = [
+  "apache-airflow>=2.9.0"
+]
+
+[project.scripts]
+datamission-pipeline = "datamission_pipeline.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
