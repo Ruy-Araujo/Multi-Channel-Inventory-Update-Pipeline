@@ -1,8 +1,11 @@
 # Multi-Channel Inventory Update Pipeline
 
+![Pipeline Architecture Cover](./docs/architecture-cover.png)
+
 Python pipeline to integrate datasets through the DataMission API, validate raw formats (CSV/JSON/Parquet), normalize data in pandas, and persist artifacts with execution metadata.
 
 The pipeline also performs transformation and enrichment to compute key stock metrics, including:
+
 - `days_of_coverage`
 - `safety_margin`
 - `needs_replenishment`
@@ -83,6 +86,7 @@ Each execution writes a metadata file with:
 ## Structural Alerts and Checks
 
 The pipeline emits structured alerts to logs and metadata when:
+
 - validation checks fail (for example missing required columns or type conversion failures)
 - downloaded dataset row count is below expected minimum
 - normalization drops too many rows
@@ -118,6 +122,7 @@ pytest -q
 
 ## Contributors
 
-| Name | Contact | Pic |
-|--|--|--|
-| Ruy Araujo  <br> Data Coordinator | ruy.araujo@leomadeiras.com.br | <img alt="" width="260" height="260" class="avatar width-full height-full rounded-2" src="https://avatars.githubusercontent.com/u/53796141?v=4"> |
+
+| Name                     | Contact                                                               | Pic                                                       |
+| ------------------------ | --------------------------------------------------------------------- | --------------------------------------------------------- |
+| Ruy Araujo Data Solution | [ruy.araujo@leomadeiras.com.br](mailto:ruy.araujo@leomadeiras.com.br) | ![](https://avatars.githubusercontent.com/u/53796141?v=4) |
