@@ -64,6 +64,9 @@ datamission-pipeline run --project-id <your_project_id> --format parquet
 - Intermediate enriched data with lineage + derived columns: `data/processed/intermediate_<run_id>.parquet`
 - Processed enriched dataset: `data/processed/<run_id>.parquet`
 - Key stock metrics by category/location: `data/processed/metrics_<run_id>.parquet`
+- Published latest enriched dataset: `data/published/latest_enriched.parquet`
+- Published latest metrics dataset: `data/published/latest_metrics.parquet`
+- Publish manifest per run: `data/published/manifest_<run_id>.json`
 - Execution metadata: `data/logs/`
 
 Each execution writes a metadata file with:
@@ -74,7 +77,22 @@ Each execution writes a metadata file with:
 - validation results
 - total rows before/after normalization
 - transformation stats and derived columns
+- structured alerts (`alerts`) for schema issues and incomplete datasets
 - final execution status
+
+## Structural Alerts and Checks
+
+The pipeline emits structured alerts to logs and metadata when:
+- validation checks fail (for example missing required columns or type conversion failures)
+- downloaded dataset row count is below expected minimum
+- normalization drops too many rows
+
+Configure thresholds in `.env`:
+
+```bash
+PIPELINE_MIN_EXPECTED_ROWS=1
+PIPELINE_MAX_DROPPED_ROWS_RATIO=0.25
+```
 
 ## Scheduling with cron
 
@@ -90,7 +108,7 @@ Crontab example (daily at 02:00):
 
 DAG file: `scheduler/airflow_dag.py`.
 
-The DAG executes the same CLI command with retries.
+The DAG executes the same CLI command (with retries), consumes the API, transforms/enriches data, and publishes latest artifacts.
 
 ## Tests
 

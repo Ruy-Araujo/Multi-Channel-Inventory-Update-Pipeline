@@ -8,6 +8,14 @@ from typing import Any
 
 
 @dataclass
+class PipelineAlert:
+    code: str
+    severity: str
+    message: str
+    details: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
 class RunMetadata:
     run_id: str
     project_id: str
@@ -21,12 +29,16 @@ class RunMetadata:
     intermediate_file_path: str | None = None
     processed_file_path: str | None = None
     metrics_file_path: str | None = None
+    published_file_path: str | None = None
+    published_metrics_file_path: str | None = None
+    publish_manifest_path: str | None = None
     raw_row_count: int | None = None
     row_count: int | None = None
     dropped_rows: int | None = None
     transformation_stats: dict[str, Any] = field(default_factory=dict)
     derived_columns: list[str] = field(default_factory=list)
     validation_results: dict[str, Any] = field(default_factory=dict)
+    alerts: list[PipelineAlert] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     status: str = "running"
     finished_at: str | None = None

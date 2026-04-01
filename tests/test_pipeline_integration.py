@@ -55,4 +55,8 @@ def test_pipeline_run_success(tmp_path: Path) -> None:
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
     assert metadata["intermediate_file_path"] is not None
     assert metadata["metrics_file_path"] is not None
+    assert metadata["published_file_path"] is not None
+    assert metadata["published_metrics_file_path"] is not None
+    assert metadata["publish_manifest_path"] is not None
+    assert isinstance(metadata["alerts"], list)
     assert "days_of_coverage" in metadata["derived_columns"]

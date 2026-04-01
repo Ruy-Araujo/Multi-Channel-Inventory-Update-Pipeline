@@ -9,6 +9,9 @@ if [[ -f .env ]]; then
   export $(grep -v '^#' .env | xargs)
 fi
 
-python -m datamission_pipeline.cli run \
-  --project-id "${DATAMISSION_PROJECT_ID}" \
-  --format "${DATAMISSION_DEFAULT_FORMAT:-parquet}"
+args=(run --format "${DATAMISSION_DEFAULT_FORMAT:-parquet}")
+if [[ -n "${DATAMISSION_PROJECT_ID:-}" ]]; then
+  args+=(--project-id "${DATAMISSION_PROJECT_ID}")
+fi
+
+PYTHONPATH=src python -m datamission_pipeline.cli "${args[@]}"

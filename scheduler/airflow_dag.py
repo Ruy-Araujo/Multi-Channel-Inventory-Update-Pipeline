@@ -8,7 +8,6 @@ from airflow.operators.bash import BashOperator
 
 
 PROJECT_DIR = os.getenv("PIPELINE_PROJECT_DIR", "/opt/pipeline")
-DEFAULT_PROJECT_ID = os.getenv("DATAMISSION_PROJECT_ID", "")
 DEFAULT_FORMAT = os.getenv("DATAMISSION_DEFAULT_FORMAT", "parquet")
 
 with DAG(
@@ -27,8 +26,9 @@ with DAG(
         task_id="run_dataset_pipeline",
         bash_command=(
             f"cd {PROJECT_DIR} && "
-            "python -m datamission_pipeline.cli run "
-            f"--project-id {DEFAULT_PROJECT_ID} "
-            f"--format {DEFAULT_FORMAT}"
+            "CMD='PYTHONPATH=src python -m datamission_pipeline.cli run --format "
+            f"{DEFAULT_FORMAT}' && "
+            "if [ -n \"${DATAMISSION_PROJECT_ID}\" ]; then CMD=\"$CMD --project-id ${DATAMISSION_PROJECT_ID}\"; fi && "
+            "eval \"$CMD\""
         ),
     )
