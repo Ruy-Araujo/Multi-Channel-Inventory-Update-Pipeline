@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 from pathlib import Path
 
 from datamission_pipeline.config import Settings
@@ -50,3 +51,8 @@ def test_pipeline_run_success(tmp_path: Path) -> None:
     assert raw_path is not None and raw_path.exists()
     assert processed_path is not None and processed_path.exists()
     assert metadata_path.exists()
+
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    assert metadata["intermediate_file_path"] is not None
+    assert metadata["metrics_file_path"] is not None
+    assert "days_of_coverage" in metadata["derived_columns"]

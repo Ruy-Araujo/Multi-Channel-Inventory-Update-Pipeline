@@ -2,6 +2,11 @@
 
 Python pipeline to integrate datasets through the DataMission API, validate raw formats (CSV/JSON/Parquet), normalize data in pandas, and persist artifacts with execution metadata.
 
+The pipeline also performs transformation and enrichment to compute key stock metrics, including:
+- `days_of_coverage`
+- `safety_margin`
+- `needs_replenishment`
+
 ## Requirements
 
 - Python 3.10+
@@ -56,7 +61,9 @@ datamission-pipeline run --project-id <your_project_id> --format parquet
 ## Generated Outputs
 
 - Validated raw data: `data/raw/`
-- Processed data (Parquet): `data/processed/`
+- Intermediate enriched data with lineage + derived columns: `data/processed/intermediate_<run_id>.parquet`
+- Processed enriched dataset: `data/processed/<run_id>.parquet`
+- Key stock metrics by category/location: `data/processed/metrics_<run_id>.parquet`
 - Execution metadata: `data/logs/`
 
 Each execution writes a metadata file with:
@@ -66,6 +73,7 @@ Each execution writes a metadata file with:
 - `checksum_sha256`
 - validation results
 - total rows before/after normalization
+- transformation stats and derived columns
 - final execution status
 
 ## Scheduling with cron
@@ -89,3 +97,9 @@ The DAG executes the same CLI command with retries.
 ```bash
 pytest -q
 ```
+
+## Contributors
+
+| Name | Contact | Pic |
+|--|--|--|
+| Ruy Araujo  <br> Data Coordinator | ruy.araujo@leomadeiras.com.br | <img alt="" width="260" height="260" class="avatar width-full height-full rounded-2" src="https://avatars.githubusercontent.com/u/53796141?v=4"> |

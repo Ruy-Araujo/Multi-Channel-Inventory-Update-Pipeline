@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from datamission_pipeline.transformers import normalize_dataframe
+from datamission_pipeline.transformers import enrich_inventory_dataframe, normalize_dataframe
 
 
 def test_normalize_dataframe_returns_expected_schema() -> None:
@@ -51,3 +51,32 @@ def test_normalize_dataframe_drops_invalid_rows() -> None:
 
     assert len(normalized) == 1
     assert stats["dropped_rows"] == 1
+
+
+def test_enrich_inventory_dataframe_adds_derived_columns() -> None:
+    df = pd.DataFrame(
+        {
+            "order_id": ["a", "b"],
+            "timestamp": [
+                "2026-04-01T01:18:45.548709",
+                "2026-04-02T01:18:45.548709",
+            ],
+            "customer_id": ["9683", "1111"],
+            "product_category": ["Home", "Home"],
+            "price": ["10.5", "8.5"],
+            "quantity": ["2", "4"],
+            "store_location": ["Store A", "Store A"],
+        }
+    )
+    normalized, _ = normalize_dataframe(df)
+
+    intermediate, metrics, stats = enrich_inventory_dataframe(normalized, run_id="run-123")
+
+    assert len(intermediate) == 2
+    assert len(metrics) == 1
+    assert "days_of_coverage" in intermediate.columns
+    assert "safety_margin" in intermediate.columns
+    assert "lineage_run_id" in intermediate.columns
+    assert intermediate["lineage_run_id"].iloc[0] == "run-123"
+    assert stats["intermediate_rows"] == 2
+    assert stats["metrics_rows"] == 1

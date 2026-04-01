@@ -9,7 +9,7 @@ from uuid import uuid4
 from datamission_pipeline.client import DatasetApiClient
 from datamission_pipeline.config import Settings
 from datamission_pipeline.metadata import RunMetadata, write_metadata
-from datamission_pipeline.transformers import normalize_dataframe
+from datamission_pipeline.transformers import enrich_inventory_dataframe, normalize_dataframe
 from datamission_pipeline.validators import RawDatasetValidator
 
 
@@ -38,7 +38,9 @@ class DatasetPipeline:
         )
 
         raw_file_path: Path | None = None
+        intermediate_file_path: Path | None = None
         processed_file_path: Path | None = None
+        metrics_file_path: Path | None = None
         metadata_path: Path
 
         try:
@@ -65,8 +67,29 @@ class DatasetPipeline:
             metadata.row_count = stats["output_rows"]
             metadata.dropped_rows = stats["dropped_rows"]
 
-            processed_file_path = self._save_processed_dataframe(normalized_df, run_id)
+            enriched_df, metrics_df, transform_stats = enrich_inventory_dataframe(normalized_df, run_id=run_id)
+            metadata.transformation_stats = transform_stats
+            metadata.derived_columns = [
+                "orders_count",
+                "total_units",
+                "avg_daily_demand",
+                "inventory_on_hand",
+                "days_of_coverage",
+                "safety_margin",
+                "needs_replenishment",
+                "lineage_run_id",
+                "lineage_transformed_at",
+                "lineage_transformation_version",
+            ]
+
+            intermediate_file_path = self._save_intermediate_dataframe(enriched_df, run_id)
+            metadata.intermediate_file_path = str(intermediate_file_path)
+
+            processed_file_path = self._save_processed_dataframe(enriched_df, run_id)
             metadata.processed_file_path = str(processed_file_path)
+
+            metrics_file_path = self._save_metrics_dataframe(metrics_df, run_id)
+            metadata.metrics_file_path = str(metrics_file_path)
 
             metadata.finish("success")
             logger.info("Pipeline execution completed successfully", extra={"run_id": run_id, "rows": metadata.row_count})
@@ -88,7 +111,17 @@ class DatasetPipeline:
         output_path.write_bytes(payload)
         return output_path
 
+    def _save_intermediate_dataframe(self, dataframe, run_id: str) -> Path:
+        output_path = self.settings.processed_dir / f"intermediate_{run_id}.parquet"
+        dataframe.to_parquet(output_path, index=False)
+        return output_path
+
     def _save_processed_dataframe(self, dataframe, run_id: str) -> Path:
         output_path = self.settings.processed_dir / f"{run_id}.parquet"
+        dataframe.to_parquet(output_path, index=False)
+        return output_path
+
+    def _save_metrics_dataframe(self, dataframe, run_id: str) -> Path:
+        output_path = self.settings.processed_dir / f"metrics_{run_id}.parquet"
         dataframe.to_parquet(output_path, index=False)
         return output_path
